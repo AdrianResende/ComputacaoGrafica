@@ -47,23 +47,28 @@ class SistemaSolar(Base):
         self.anguloOrbitaLua = 0.0
 
     def update(self):
-        # TODO 5: setas para cima/baixo ("up"/"down") alteram self.velocidadeOrbita
-        #         (use isKeyPressed e não deixe a velocidade ficar negativa)
+        if self.input.isKeyPressed("up"):
+            self.velocidadeOrbita += 1.0 * self.deltaTime
+        if self.input.isKeyPressed("down"):
+            self.velocidadeOrbita = max(0.0, self.velocidadeOrbita - 1.0 * self.deltaTime)
 
         self.anguloSol += self.velocidadeSol * self.deltaTime
         self.anguloOrbita += self.velocidadeOrbita * self.deltaTime
         self.anguloRotacaoPlaneta += self.velocidadeRotacaoPlaneta * self.deltaTime
         self.anguloOrbitaLua += self.velocidadeOrbitaLua * self.deltaTime
 
-        # TODO 1: o sol deve girar em torno do próprio centro (use self.anguloSol)
-        matrizSol = Matrix.make_scale(0.25)
+        matrizSol = Matrix.make_rotation_z(self.anguloSol) @ Matrix.make_scale(0.25)
 
-        # TODO 2: o planeta deve ORBITAR o sol (use self.anguloOrbita)
-        # TODO 3: o planeta deve GIRAR em torno do próprio eixo (use self.anguloRotacaoPlaneta)
-        matrizPlaneta = Matrix.make_translation(RAIO_ORBITA_PLANETA, 0, 0) @ Matrix.make_scale(0.1)
+        orbitaPlaneta = (Matrix.make_rotation_z(self.anguloOrbita)
+                         @ Matrix.make_translation(RAIO_ORBITA_PLANETA, 0, 0))
+        matrizPlaneta = (orbitaPlaneta
+                         @ Matrix.make_rotation_z(self.anguloRotacaoPlaneta)
+                         @ Matrix.make_scale(0.1))
 
-        # TODO 4: a lua deve orbitar o PLANETA, acompanhando-o (use self.anguloOrbitaLua)
-        matrizLua = Matrix.make_scale(0.05)
+        matrizLua = (orbitaPlaneta
+                     @ Matrix.make_rotation_z(self.anguloOrbitaLua)
+                     @ Matrix.make_translation(RAIO_ORBITA_LUA, 0, 0)
+                     @ Matrix.make_scale(0.05))
 
         glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.programRef)
